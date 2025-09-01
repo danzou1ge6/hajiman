@@ -67,13 +67,13 @@ where
         let n_zero_freq = freq.iter().filter(|(_, x)| **x == 0.0).count();
         let shared_freq = 0.05_f32.min(n_zero_freq as f32 * 0.005);
         let added_freq = shared_freq / (n_zero_freq as f32);
-        let removed_freq = shared_freq / ((2usize.pow(B::N) - n_zero_freq) as f32);
+        let left_freq = 1.0 - shared_freq;
 
         let freq = freq.map(|_, x| {
             if *x == 0.0 {
                 added_freq
             } else {
-                *x - removed_freq
+                *x * left_freq
             }
         });
 
