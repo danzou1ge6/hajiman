@@ -2,7 +2,7 @@ use crate::bits_key::{Bits, BitsMap, ConcatError, Padded};
 use crate::characters::CharacterFrequency;
 use crate::encoding::{Decoder, Encoding};
 use crate::letters::{LetterCosts, LetterIdIndexed};
-use crate::lexing::{self, Lexer, NonPrefixFreeError, StringLexer};
+use crate::lexing::{self, LexemError, Lexer, StringLexer};
 
 #[derive(Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct JimiEncoding<B>
@@ -39,7 +39,7 @@ where
         JimiEncoder::from_encoding(self)
     }
 
-    pub fn decoder(&self) -> Result<JimiDecoder<B>, NonPrefixFreeError> {
+    pub fn decoder(&self) -> Result<JimiDecoder<B>, LexemError> {
         JimiDecoder::from_encoding(self)
     }
 
@@ -135,7 +135,7 @@ mod decoder {
     where
         B: Bits,
     {
-        pub fn from_encoding(encoding: &JimiEncoding<B>) -> Result<Self, NonPrefixFreeError> {
+        pub fn from_encoding(encoding: &JimiEncoding<B>) -> Result<Self, LexemError> {
             let lexer = StringLexer::new(&encoding.tokens)?;
             Ok(Self {
                 lexer,
@@ -161,7 +161,7 @@ mod decoder {
             self.decoder.decode_from_error(self.lexer.lex(chars))
         }
 
-        pub fn decode_to_bits<'a, S: AsRef<str> + 'a>(
+        pub fn decode_to_bits<'a, S: AsRef<str> + ?Sized + 'a>(
             &'a self,
             s: &'a S,
         ) -> impl Iterator<Item = Result<B, Error>> + 'a {
@@ -169,12 +169,21 @@ mod decoder {
                 .map(|x| x.map_err(|e| self.map_error(e)))
         }
 
-        pub fn decode<'a, S: AsRef<str> + 'a>(
+        pub fn decode<'a, S: AsRef<str> + ?Sized + 'a>(
             &'a self,
             s: &'a S,
             writer: impl std::io::Write,
         ) -> Result<(), ConcatError<Error>> {
             B::concat(self.decode_to_bits(s), writer)
+        }
+
+        pub fn decode_to_vec<'a, S: AsRef<str> + ?Sized + 'a>(
+            &'a self,
+            s: &'a S,
+        ) -> Result<Vec<u8>, ConcatError<Error>> {
+            let mut v = Vec::new();
+            self.decode(s, &mut v)?;
+            Ok(v)
         }
 
         pub fn lexer(&self) -> &StringLexer {

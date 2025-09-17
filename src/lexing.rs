@@ -75,14 +75,17 @@ pub enum Layer<I, L> {
 }
 
 #[derive(Debug)]
-pub struct NonPrefixFreeError;
+pub enum LexemError {
+    NonPrefixFree,
+    EmptyLexem,
+}
 
 impl<I, L> Layer<I, L> {
-    fn or_inner(&mut self) -> std::result::Result<&mut Vec<(L, Code<I>)>, NonPrefixFreeError> {
+    fn or_inner(&mut self) -> std::result::Result<&mut Vec<(L, Code<I>)>, LexemError> {
         use Layer::*;
         match self {
             Inner(..) => {}
-            Leaf(..) => return Err(NonPrefixFreeError),
+            Leaf(..) => return Err(LexemError::NonPrefixFree),
             Invalid => *self = Inner(vec![]),
         }
         match self {
@@ -91,10 +94,10 @@ impl<I, L> Layer<I, L> {
         }
     }
 
-    fn or_leaf_set_to(&mut self, leaf: L) -> std::result::Result<(), NonPrefixFreeError> {
+    fn or_leaf_set_to(&mut self, leaf: L) -> std::result::Result<(), LexemError> {
         use Layer::*;
         match self {
-            Inner(..) => return Err(NonPrefixFreeError),
+            Inner(..) => return Err(LexemError::NonPrefixFree),
             _ => *self = Leaf(leaf),
         }
         Ok(())
@@ -104,7 +107,7 @@ impl<I, L> Layer<I, L> {
 pub fn build_tree<M1, I, L, M, T>(
     suffice: impl Iterator<Item = (L, Code<I>)>,
     code_letters: impl Iterator<Item = I> + Clone,
-) -> std::result::Result<M, NonPrefixFreeError>
+) -> std::result::Result<M, LexemError>
 where
     M: Map<I, Output = T>,
     T: From<Tree<I, L, M>>,
@@ -116,6 +119,9 @@ where
     let mut layer = M1::init(code_letters.clone(), Invalid);
 
     for (l, code) in suffice {
+        if code.len() == 0 {
+            return Err(LexemError::EmptyLexem);
+        }
         let head = code.head();
 
         if let Some(tail) = code.tail() {

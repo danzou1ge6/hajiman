@@ -12,11 +12,13 @@ mod jimi;
 mod letters;
 mod lexing;
 
-pub use bits_key::bits;
+pub use bits_key::{Bits, BitsIter, bits};
 
 pub use characters::{CharacterCounter, CharacterFrequency};
 pub use encoding::{Decoder, Encoder, Encoding};
 pub use hajimi::{HAJIMI, hajimi_tokens};
 pub use jimi::{JimiDecoder, JimiEncoder, JimiEncoding, JimiError};
 pub use letters::LetterCosts;
-pub use lexing::{Lexer, StringLexer};
+pub use lexing::{LexemError, Lexer, StringLexer};
+
+pub use serde_json;

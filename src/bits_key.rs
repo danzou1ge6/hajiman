@@ -29,6 +29,15 @@ pub enum ConcatError<E> {
     Io(std::io::Error),
 }
 
+impl<E> ConcatError<E> {
+    pub fn unwrap_parent(self) -> E {
+        match self {
+            Self::Parent(p) => p,
+            _ => panic!("called unwrap_parent on ConcatError::Io"),
+        }
+    }
+}
+
 impl<E> From<E> for ConcatError<E> {
     fn from(value: E) -> Self {
         Self::Parent(value)

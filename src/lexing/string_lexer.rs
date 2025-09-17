@@ -47,7 +47,7 @@ impl super::Lexer for StringLexer {
 }
 
 impl StringLexer {
-    pub fn new(tokens: &LetterIdIndexed<String>) -> Result<Self, super::NonPrefixFreeError> {
+    pub fn new(tokens: &LetterIdIndexed<String>) -> Result<Self, super::LexemError> {
         let chars = tokens
             .iter()
             .map(|s| s.chars())
