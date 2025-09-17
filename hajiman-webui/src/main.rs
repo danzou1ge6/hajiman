@@ -160,6 +160,7 @@ fn App() -> impl IntoView {
                 set_encoding_error(format!("{:?}", err));
                 return;
             }
+            set_encoding_error("".to_string());
             match last_modified.get() {
                 LastModified::Plain => set_encoded(
                     jimi.read()
@@ -201,7 +202,6 @@ fn App() -> impl IntoView {
                                 {move || if matches!(last_modified(), LastModified::Plain) { "明文->蜜文" } else { "明文" }}
                             </label>
                             <TextArea rs=plain set=update_plain/>
-                            <p>{encoding_error}</p>
                         </div>
 
                         <div class="text-container">
@@ -215,6 +215,7 @@ fn App() -> impl IntoView {
                         <div class="text-container">
                             <label for="encoded">编码</label>
                             <TextArea rs=encoding_json set=update_encoding_json/>
+                            <p>{encoding_error}</p>
                         </div>
                     </div>
 
